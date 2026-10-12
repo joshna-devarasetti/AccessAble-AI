@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AccessAble AI - An accessible, privacy-first digital accessibility assistant powered by local AI. Text simplification, speech tools, document reader, and WCAG accessibility checker.">
+  <title>AccessAble AI — Digital Accessibility Assistant</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Accessible Skip Link for Keyboard & Screen Reader Users -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ARIA Live Regions for Screen Reader Announcements -->
+  <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <div id="sr-alert" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- Accessibility Quick-Bar (Always visible at top) -->
+  <header class="app-header" role="banner">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="logo-mark" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="6" r="2"></circle>
+            <path d="M12 8v8"></path>
+            <path d="m8 12 8 0"></path>
+            <path d="m9 19 3-3 3 3"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">AccessAble <span class="brand-accent">AI</span></h1>
+          <p class="brand-tagline">Digital Accessibility Assistant</p>
+        </div>
+      </div>
+
+      <!-- Quick Accessibility & System Status Controls in Header -->
+      <div class="header-controls">
+        <button id="quick-contrast-btn" class="btn btn-secondary btn-sm" aria-label="Toggle High Contrast Mode" title="Toggle High Contrast">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 0 20Z"></path></svg>
+          <span class="btn-text">High Contrast</span>
+        </button>
+
+        <button id="quick-theme-btn" class="btn btn-secondary btn-sm" aria-label="Toggle Dark or Light Theme" title="Toggle Theme">
+          <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <span class="btn-text" id="theme-label">Theme</span>
+        </button>
+
+        <div class="font-scale-group" role="group" aria-label="Font Size Adjuster">
+          <button id="font-decrease-btn" class="btn btn-secondary btn-icon" aria-label="Decrease Text Size" title="Smaller Font (A-)">A-</button>
+          <span id="font-size-display" class="font-display" aria-live="polite">100%</span>
+          <button id="font-increase-btn" class="btn btn-secondary btn-icon" aria-label="Increase Text Size" title="Larger Font (A+)">A+</button>
+        </div>
+
+        <button id="system-status-badge" class="status-pill status-checking" aria-haspopup="dialog" aria-expanded="false" title="Click for Local AI status and setup instructions">
+          <span class="status-indicator-dot" aria-hidden="true"></span>
+          <span id="status-badge-text">Checking AI...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs with Full ARIA keyboard support -->
+    <nav class="app-nav" aria-label="Main Application Modules">
+      <div class="nav-container" role="tablist" aria-orientation="horizontal">
+        <button role="tab" id="tab-reader" class="nav-tab active" aria-selected="true" aria-controls="panel-reader" tabindex="0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10"></path><path d="M6 10h10"></path></svg>
+          <span>Document Reader</span>
+        </button>
+
+        <button role="tab" id="tab-simplify" class="nav-tab" aria-selected="false" aria-controls="panel-simplify" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2v4"></path><path d="m4.93 10.93 2.83 2.83"></path><path d="M2 18h4"></path><path d="M20 18h2"></path><path d="m19.07 10.93-2.83 2.83"></path><circle cx="12" cy="18" r="4"></circle></svg>
+          <span>Text Simplification</span>
+        </button>
+
+        <button role="tab" id="tab-speech" class="nav-tab" aria-selected="false" aria-controls="panel-speech" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+          <span>Speech Studio</span>
+        </button>
+
+        <button role="tab" id="tab-image" class="nav-tab" aria-selected="false" aria-controls="panel-image" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
+          <span>Image Accessibility</span>
+        </button>
+
+        <button role="tab" id="tab-checker" class="nav-tab" aria-selected="false" aria-controls="panel-checker" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="m9 11 2 2 4-4"></path></svg>
+          <span>Accessibility Checker</span>
+        </button>
+
+        <button role="tab" id="tab-learning" class="nav-tab" aria-selected="false" aria-controls="panel-learning" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+          <span>Learning Support</span>
+        </button>
+
+        <button role="tab" id="tab-settings" class="nav-tab" aria-selected="false" aria-controls="panel-settings" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <span>Display Settings</span>
+        </button>
+
+        <button role="tab" id="tab-help" class="nav-tab" aria-selected="false" aria-controls="panel-help" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span>AI Setup & Guide</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Application Content Area -->
+  <main id="main-content" class="app-main" tabindex="-1">
+    <div class="content-wrapper">
+
+      <!-- ======================================================== -->
+      <!-- MODULE B: PDF UPLOAD & DOCUMENT READER PANEL             -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-reader" class="tab-panel active" aria-labelledby="tab-reader">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Accessible Document Reader</h2>
+            <p class="panel-desc">Upload PDF documents to read with adjustable fonts, text-to-speech, readability scoring, and local AI simplification. Operates 100% offline for text documents without storing files.</p>
+          </div>
+        </div>
+
+        <div class="workspace-grid">
+          <!-- Left Column: Upload & Options -->
+          <div class="card upload-card">
+            <h3 class="card-title">Upload Document</h3>
+            <div id="pdf-drop-zone" class="drop-zone" tabindex="0" role="region" aria-label="PDF File Upload Drop Zone">
+              <svg class="drop-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="12" y2="12"></line>
+                <line x1="15" y1="15" x2="12" y2="12"></line>
+              </svg>
+              <p class="drop-text">Drag & drop your PDF file here, or <label for="pdf-file-input" class="file-select-link">browse files</label></p>
+              <input type="file" id="pdf-file-input" accept=".pdf" class="file-input-hidden" aria-label="Select PDF File">
+              <p class="drop-hint">Supports text PDFs & scanned documents (up to 20 MB). No cloud upload.</p>
+            </div>
+
+            <!-- OCR Options for Scanned Documents -->
+            <div class="form-group checkbox-group mt-3">
+              <label class="checkbox-label">
+                <input type="checkbox" id="enable-ocr-checkbox">
+                <span>Enable Local OCR for Scanned Documents</span>
+              </label>
+              <p class="field-hint">Extracts text from scanned pages using local Tesseract OCR if available.</p>
+            </div>
+
+            <div id="pdf-upload-progress" class="progress-bar-container hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="PDF processing progress">
+              <div class="progress-bar-fill"></div>
+              <span class="progress-text">Processing document...</span>
+            </div>
+
+            <div id="pdf-meta-box" class="metadata-box hidden">
+              <h4 class="meta-heading">Document Details</h4>
+              <ul class="meta-list">
+                <li><strong>Filename:</strong> <span id="meta-filename">-</span></li>
+                <li><strong>Pages:</strong> <span id="meta-pages">-</span></li>
+                <li><strong>Total Words:</strong> <span id="meta-words">-</span></li>
+                <li><strong>Reading Ease:</strong> <span id="meta-ease">-</span></li>
+                <li><strong>Grade Level:</strong> <span id="meta-grade">-</span></li>
+              </ul>
+            </div>
+
+            <div class="action-buttons-row mt-3">
+              <button id="pdf-clear-btn" class="btn btn-secondary" disabled>Clear Document</button>
+              <button id="pdf-send-to-simplify-btn" class="btn btn-primary" disabled>
+                <span>Simplify in AI</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: Document Reader Workspace -->
+          <div class="card reader-workspace-card">
+            <div class="workspace-toolbar">
+              <div class="toolbar-left">
+                <h3 class="card-title">Extracted Document Text</h3>
+                <span id="reader-stats-badge" class="badge badge-info">0 words</span>
+              </div>
+              <div class="toolbar-actions">
+                <button id="reader-speak-btn" class="btn btn-secondary btn-sm" aria-label="Read Document Text Aloud" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                  <span>Read Aloud</span>
+                </button>
+                <button id="reader-copy-btn" class="btn btn-secondary btn-sm" aria-label="Copy Extracted Text" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Notice for scanned PDFs / OCR -->
+            <div id="reader-scanned-alert" class="alert alert-warning hidden" role="alert">
+              <strong>Notice:</strong> This PDF contains scanned image pages without selectable text.
+              <span id="scanned-alert-details">Enable OCR or view the setup instructions for local Tesseract.</span>
+            </div>
+
+            <div class="text-editor-container">
+              <label for="pdf-extracted-text" class="sr-only">Extracted PDF Text Content</label>
+              <textarea id="pdf-extracted-text" class="accessible-textarea" placeholder="Upload a PDF above to view and read its content here, or paste your text directly..." aria-label="Extracted document text editor"></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- MODULE E: REAL AI TEXT SIMPLIFICATION                   -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-simplify" class="tab-panel" aria-labelledby="tab-simplify" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">AI Text Simplification & Plain Language</h2>
+            <p class="panel-desc">Transforms dense or complex language into clear, easy-to-understand English using your local instruction-following model. Preserves facts, numbers, dates, and technical accuracy without cloud API fees.</p>
+          </div>
+        </div>
+
+        <!-- AI Engine Status Banner inside module -->
+        <div id="simplify-engine-banner" class="engine-banner banner-info" role="status">
+          <div class="banner-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </div>
+          <div class="banner-content">
+            <strong>Local AI Engine:</strong>
+            <span id="simplify-model-display">Checking local Ollama model...</span>
+          </div>
+          <div class="banner-actions">
+            <select id="simplify-model-select" class="form-select form-select-sm" aria-label="Select Local Model">
+              <option value="llama3.2:1b" selected>llama3.2:1b (Installed / Default)</option>
+              <option value="llama3.2">llama3.2</option>
+              <option value="phi3:mini">phi3:mini</option>
+              <option value="mistral:7b">mistral:7b</option>
+              <option value="qwen2.5:3b">qwen2.5:3b</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="comparison-grid">
+          <!-- Left: Input Original Text -->
+          <div class="card text-card">
+            <div class="card-header-row">
+              <h3 class="card-title">Original Text</h3>
+              <span id="original-reading-badge" class="badge badge-neutral">Ready</span>
+            </div>
+            <label for="simplify-input-text" class="sr-only">Original text to simplify</label>
+            <textarea id="simplify-input-text" class="accessible-textarea" rows="12" placeholder="Paste complex text, academic paragraphs, or legal notices here..." aria-label="Original text input"></textarea>
+            
+            <div class="readability-stats-strip" id="original-stats-strip">
+              <div class="stat-pill">Words: <strong id="orig-stat-words">0</strong></div>
+              <div class="stat-pill">Reading Ease: <strong id="orig-stat-ease">-</strong></div>
+              <div class="stat-pill">Grade Level: <strong id="orig-stat-grade">-</strong></div>
+            </div>
+
+            <div class="card-actions-footer">
+              <button id="load-sample-text-btn" class="btn btn-secondary btn-sm">Load Sample Text</button>
+              <button id="simplify-trigger-btn" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Simplify Text with Local AI</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Simplified Output -->
+          <div class="card text-card">
+            <div class="card-header-row">
+              <div>
+                <h3 class="card-title">Simplified Version</h3>
+                <span id="simplify-origin-badge" class="badge badge-success hidden">AI Simplified</span>
+              </div>
+              <div class="card-actions-mini">
+                <button id="simplify-speak-btn" class="btn btn-secondary btn-icon" aria-label="Read simplified text aloud" title="Read Aloud" disabled>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                </button>
+                <button id="simplify-copy-btn" class="btn btn-secondary btn-icon" aria-label="Copy simplified text" title="Copy Text" disabled>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <div id="simplify-loading-state" class="loading-state-box hidden" role="status">
+              <div class="spinner" aria-hidden="true"></div>
+              <p>Simplifying text using your local model... Please wait.</p>
+            </div>
+
+            <!-- Explicit Rule-Based Fallback Disclaimer Alert -->
+            <div id="simplify-fallback-alert" class="alert alert-warning hidden" role="alert">
+              <strong>Notice:</strong> <span id="fallback-alert-text">Generated using non-AI rule-based plain English helper because local AI is offline.</span>
+            </div>
+
+            <label for="simplify-output-text" class="sr-only">Simplified text result</label>
+            <div id="simplify-output-text" class="accessible-output-area" tabindex="0" role="region" aria-label="Simplified text output" aria-live="polite">
+              <p class="placeholder-text">Your simplified, plain-English text will appear here.</p>
+            </div>
+
+            <div class="readability-stats-strip" id="simplified-stats-strip">
+              <div class="stat-pill">Words: <strong id="simp-stat-words">0</strong></div>
+              <div class="stat-pill">Reading Ease: <strong id="simp-stat-ease">-</strong></div>
+              <div class="stat-pill">Grade Level: <strong id="simp-stat-grade">-</strong></div>
+            </div>
+
+            <!-- Optional rule-based fallback button when AI is missing -->
+            <div id="fallback-trigger-row" class="card-actions-footer hidden">
+              <button id="run-fallback-btn" class="btn btn-secondary">
+                <span>Use Rule-Based Text Helper (Non-AI Fallback)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- MODULE C & D: SPEECH STUDIO (TTS & STT)                 -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-speech" class="tab-panel" aria-labelledby="tab-speech" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Speech Studio (Text-to-Speech & Speech-to-Text)</h2>
+            <p class="panel-desc">Listen to any content with customized audio playback, or speak into your microphone to transcribe speech into editable, simplifiable text.</p>
+          </div>
+        </div>
+
+        <div class="workspace-grid">
+          <!-- Left: Text-to-Speech Studio -->
+          <div class="card">
+            <h3 class="card-title">Text-to-Speech (Read Aloud)</h3>
+            <p class="card-desc">Converts written text into spoken speech with natural pause control and voice selection.</p>
+
+            <div class="speech-controls-bar" role="group" aria-label="Audio Playback Controls">
+              <button id="tts-play-btn" class="btn btn-primary" aria-label="Start Reading Aloud">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span>Read Aloud</span>
+              </button>
+              <button id="tts-pause-btn" class="btn btn-secondary" aria-label="Pause Speech" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                <span>Pause</span>
+              </button>
+              <button id="tts-resume-btn" class="btn btn-secondary" aria-label="Resume Speech" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span>Resume</span>
+              </button>
+              <button id="tts-stop-btn" class="btn btn-secondary" aria-label="Stop Reading" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+                <span>Stop</span>
+              </button>
+            </div>
+
+            <div class="speech-settings-grid mt-3">
+              <div class="form-group">
+                <label for="tts-voice-select">Voice</label>
+                <select id="tts-voice-select" class="form-select" aria-label="Select Voice">
+                  <option value="">Default System Voice</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="tts-rate-slider">Speech Speed: <span id="tts-rate-val">1.0x</span></label>
+                <input type="range" id="tts-rate-slider" min="0.5" max="2.0" step="0.1" value="1.0" class="form-range" aria-label="Adjust Speech Speed">
+              </div>
+
+              <div class="form-group">
+                <label for="tts-pitch-slider">Speech Pitch: <span id="tts-pitch-val">1.0</span></label>
+                <input type="range" id="tts-pitch-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="form-range" aria-label="Adjust Speech Pitch">
+              </div>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="tts-input-text">Text to Read Aloud</label>
+              <textarea id="tts-input-text" class="accessible-textarea" rows="6" placeholder="Type or paste text to be read aloud, or load text from the Document Reader..." aria-label="Text to speak"></textarea>
+            </div>
+
+            <div id="tts-status-box" class="speech-status-indicator" role="status" aria-live="polite">
+              Ready to speak.
+            </div>
+          </div>
+
+          <!-- Right: Speech-to-Text Studio -->
+          <div class="card">
+            <h3 class="card-title">Speech-to-Text (Voice Dictation)</h3>
+            <p class="card-desc">Speak into your microphone to dictate notes, transcribe lectures, or draft questions.</p>
+
+            <div id="stt-support-alert" class="alert alert-info hidden" role="status">
+              Speech recognition is supported by your browser.
+            </div>
+
+            <div class="stt-actions-row">
+              <button id="stt-record-btn" class="btn btn-primary" aria-label="Start Voice Recording">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                <span id="stt-record-label">Start Listening</span>
+              </button>
+
+              <button id="stt-stop-btn" class="btn btn-secondary" aria-label="Stop Recording" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+                <span>Stop</span>
+              </button>
+
+              <button id="stt-clear-btn" class="btn btn-secondary" aria-label="Clear Transcript">
+                <span>Clear</span>
+              </button>
+            </div>
+
+            <div id="stt-live-indicator" class="mic-live-indicator hidden" aria-live="assertive">
+              <span class="pulsing-recording-dot" aria-hidden="true"></span>
+              <span>Listening to microphone... Speak clearly.</span>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="stt-transcript-text">Voice Transcript</label>
+              <textarea id="stt-transcript-text" class="accessible-textarea" rows="7" placeholder="Your spoken words will appear here in real time..." aria-label="Speech transcription output"></textarea>
+            </div>
+
+            <div class="card-actions-footer">
+              <button id="stt-copy-btn" class="btn btn-secondary btn-sm" disabled>Copy Transcript</button>
+              <button id="stt-transfer-simplify-btn" class="btn btn-secondary btn-sm" disabled>Send to Simplification</button>
+              <button id="stt-read-back-btn" class="btn btn-secondary btn-sm" disabled>Read Back</button>
+            </div>
+
+            <p class="field-hint mt-2">
+              <strong>Privacy Notice:</strong> Dictation uses your browser's native SpeechRecognition API. Microphone access is requested only when you click "Start Listening", and audio is not stored or collected.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- MODULE F: AI IMAGE DESCRIPTIONS                         -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-image" class="tab-panel" aria-labelledby="tab-image" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">AI Image Accessibility & Alt-Text Generator</h2>
+            <p class="panel-desc">Generate screen-reader-friendly descriptions and suggested alt-text for diagrams, charts, and photos using your local vision model (e.g. moondream or llama3.2-vision).</p>
+          </div>
+        </div>
+
+        <div class="workspace-grid">
+          <!-- Left: Image Upload & Preview -->
+          <div class="card">
+            <h3 class="card-title">Upload Image</h3>
+            <div id="image-drop-zone" class="drop-zone" tabindex="0" role="region" aria-label="Image File Upload Drop Zone">
+              <svg class="drop-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+              </svg>
+              <p class="drop-text">Drag & drop an image here, or <label for="image-file-input" class="file-select-link">select an image</label></p>
+              <input type="file" id="image-file-input" accept="image/png,image/jpeg,image/webp,image/bmp" class="file-input-hidden" aria-label="Select Image File">
+              <p class="drop-hint">PNG, JPEG, WebP, BMP (up to 10 MB). Safe local processing.</p>
+            </div>
+
+            <div id="image-preview-wrapper" class="image-preview-box hidden">
+              <img id="image-preview" src="" alt="User uploaded image preview for accessibility description generation">
+              <div id="image-meta-tag" class="image-meta-tag">0x0 px</div>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="image-mode-select">Description Detail</label>
+              <select id="image-mode-select" class="form-select">
+                <option value="standard">Standard (Alt-text + Visual Details + Visible Text)</option>
+                <option value="concise">Concise (Single sentence alt-text)</option>
+                <option value="detailed">Comprehensive (Deep accessibility breakdown)</option>
+              </select>
+            </div>
+
+            <div class="action-buttons-row mt-3">
+              <button id="image-describe-btn" class="btn btn-primary" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
+                <span>Generate Alt-Text</span>
+              </button>
+              <button id="image-clear-btn" class="btn btn-secondary" disabled>Clear</button>
+            </div>
+          </div>
+
+          <!-- Right: Description Output -->
+          <div class="card">
+            <h3 class="card-title">Generated Accessibility Output</h3>
+            <span id="image-disclaimer-badge" class="badge badge-neutral mb-2">Local Vision Model</span>
+
+            <div id="image-loading-state" class="loading-state-box hidden" role="status">
+              <div class="spinner" aria-hidden="true"></div>
+              <p>Analyzing visual elements with local vision model... Please wait.</p>
+            </div>
+
+            <div class="form-group">
+              <label for="image-alt-result">Suggested Alt-Text (Ready for HTML &lt;img alt="..."&gt;)</label>
+              <div class="input-with-action">
+                <input type="text" id="image-alt-result" class="form-input" readonly placeholder="Concise alt-text will appear here..." aria-label="Suggested alt text result">
+                <button id="image-copy-alt-btn" class="btn btn-secondary btn-sm" disabled>Copy Alt</button>
+              </div>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="image-detailed-result">Detailed Description & Visible Text</label>
+              <textarea id="image-detailed-result" class="accessible-textarea" rows="8" readonly placeholder="Detailed visual description and any transcribed text will appear here..." aria-label="Detailed image description result"></textarea>
+            </div>
+
+            <div class="card-actions-footer">
+              <button id="image-speak-btn" class="btn btn-secondary btn-sm" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Read Description Aloud</span>
+              </button>
+              <button id="image-copy-all-btn" class="btn btn-secondary btn-sm" disabled>Copy All</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- MODULE H: WEBSITE ACCESSIBILITY CHECKER                 -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-checker" class="tab-panel" aria-labelledby="tab-checker" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Web Accessibility Checker (WCAG 2.1 Audit)</h2>
+            <p class="panel-desc">Audit HTML snippets, files, or live URLs for WCAG 2.1 Level A & AA barriers including missing alt text, unlabelled inputs, empty links, heading hierarchy breaks, landmark structures, and removed focus outlines.</p>
+          </div>
+        </div>
+
+        <div class="checker-input-grid">
+          <!-- Input Mode Tabs -->
+          <div class="card">
+            <div class="sub-tab-nav" role="tablist" aria-label="Checker Input Methods">
+              <button role="tab" id="subtab-snippet" class="sub-tab active" aria-selected="true" aria-controls="subpanel-snippet">HTML Snippet</button>
+              <button role="tab" id="subtab-file" class="sub-tab" aria-selected="false" aria-controls="subpanel-file">Upload HTML File</button>
+              <button role="tab" id="subtab-url" class="sub-tab" aria-selected="false" aria-controls="subpanel-url">Safe URL Scan</button>
+            </div>
+
+            <!-- Subpanel 1: HTML Snippet -->
+            <div role="tabpanel" id="subpanel-snippet" class="sub-panel active" aria-labelledby="subtab-snippet">
+              <label for="checker-html-input" class="sr-only">Paste HTML snippet to audit</label>
+              <textarea id="checker-html-input" class="accessible-textarea code-font" rows="9" placeholder="Paste HTML code here to audit... Example:
+<header>
+  <h1>My Site</h1>
+  <img src='logo.png'>
+  <button><i class='icon-menu'></i></button>
+</header>"></textarea>
+              <div class="card-actions-footer">
+                <button id="checker-sample-btn" class="btn btn-secondary btn-sm">Load Problematic Sample</button>
+                <button id="checker-run-snippet-btn" class="btn btn-primary">Audit HTML Snippet</button>
+              </div>
+            </div>
+
+            <!-- Subpanel 2: HTML File -->
+            <div role="tabpanel" id="subpanel-file" class="sub-panel" aria-labelledby="subtab-file" hidden>
+              <div class="form-group">
+                <label for="checker-file-input">Select an HTML or HTM file</label>
+                <input type="file" id="checker-file-input" accept=".html,.htm,.txt" class="form-input">
+              </div>
+              <div class="card-actions-footer">
+                <button id="checker-run-file-btn" class="btn btn-primary" disabled>Audit Uploaded File</button>
+              </div>
+            </div>
+
+            <!-- Subpanel 3: Safe URL Scan -->
+            <div role="tabpanel" id="subpanel-url" class="sub-panel" aria-labelledby="subtab-url" hidden>
+              <div class="form-group">
+                <label for="checker-url-input">Public Webpage URL</label>
+                <input type="url" id="checker-url-input" class="form-input" placeholder="https://example.com" aria-describedby="url-security-note">
+                <p id="url-security-note" class="field-hint">
+                  <strong>SSRF Security Protected:</strong> Private IP ranges, loopback (localhost), and link-local destinations are strictly blocked.
+                </p>
+              </div>
+              <div class="card-actions-footer">
+                <button id="checker-run-url-btn" class="btn btn-primary">Scan Webpage Safely</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audit Results Summary Card -->
+          <div class="card" id="checker-results-card">
+            <div class="card-header-row">
+              <h3 class="card-title">Audit Overview</h3>
+              <span id="audit-score-badge" class="score-badge score-neutral">Score: --</span>
+            </div>
+
+            <div class="audit-summary-metrics">
+              <div class="metric-card metric-critical">
+                <span class="metric-count" id="count-critical">0</span>
+                <span class="metric-label">Critical</span>
+              </div>
+              <div class="metric-card metric-serious">
+                <span class="metric-count" id="count-serious">0</span>
+                <span class="metric-label">Serious</span>
+              </div>
+              <div class="metric-card metric-moderate">
+                <span class="metric-count" id="count-moderate">0</span>
+                <span class="metric-label">Moderate</span>
+              </div>
+              <div class="metric-card metric-minor">
+                <span class="metric-count" id="count-minor">0</span>
+                <span class="metric-label">Minor</span>
+              </div>
+            </div>
+
+            <p id="audit-rating-text" class="audit-rating-desc">Run a scan to view detected accessibility barriers.</p>
+
+            <div class="audit-disclaimer-note">
+              <small>
+                <strong>WCAG Note:</strong> Automated tools identify common programmatically detectable issues (approx. 30-40% of WCAG criteria). Manual keyboard testing and screen reader verification are always required for full compliance.
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue Findings Breakdown List -->
+        <div class="card mt-3" id="checker-issues-card">
+          <div class="card-header-row">
+            <h3 class="card-title">Detected Barriers & Actionable Fixes</h3>
+            <div class="filter-group">
+              <label for="issues-filter-select" class="sr-only">Filter by Severity</label>
+              <select id="issues-filter-select" class="form-select form-select-sm">
+                <option value="all">All Severities</option>
+                <option value="Critical">Critical Only</option>
+                <option value="Serious">Serious Only</option>
+                <option value="Moderate">Moderate Only</option>
+                <option value="Minor">Minor Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="issues-list-container" class="issues-list" aria-live="polite">
+            <div class="empty-state-box">
+              <p>No audit has been run yet. Submit an HTML snippet or URL above to view issue locations and code recommendations.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- MODULE I: OPTIONAL ACCESSIBLE LEARNING SUPPORT          -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-learning" class="tab-panel" aria-labelledby="tab-learning" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Accessible Learning Support</h2>
+            <p class="panel-desc">Support for students and educators. Summarizes educational texts, builds plain-language terminology glossaries, and generates practice questions to verify comprehension.</p>
+          </div>
+        </div>
+
+        <div class="workspace-grid">
+          <!-- Left: Study Material Input -->
+          <div class="card">
+            <h3 class="card-title">Educational Material</h3>
+            <div class="form-group">
+              <label for="learning-input-text">Textbook Chapter, Article, or Lecture Notes</label>
+              <textarea id="learning-input-text" class="accessible-textarea" rows="10" placeholder="Paste study notes or educational text here to generate an accessible study guide..." aria-label="Educational material input"></textarea>
+            </div>
+
+            <div class="card-actions-footer">
+              <button id="learning-sample-btn" class="btn btn-secondary btn-sm">Load Sample Study Note</button>
+              <button id="learning-generate-btn" class="btn btn-primary">
+                <span>Generate Study Guide</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Generated Learning Guide -->
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="card-title">Accessible Study Guide</h3>
+              <button id="learning-speak-btn" class="btn btn-secondary btn-sm" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Read Aloud</span>
+              </button>
+            </div>
+
+            <div id="learning-loading-state" class="loading-state-box hidden" role="status">
+              <div class="spinner" aria-hidden="true"></div>
+              <p>Generating study summary, glossary, and review questions...</p>
+            </div>
+
+            <div id="learning-output-container" class="learning-guide-output">
+              <div class="empty-state-box">
+                <p>Paste study notes on the left and click "Generate Study Guide".</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- MODULE G: ACCESSIBILITY & DISPLAY SETTINGS              -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-settings" class="tab-panel" aria-labelledby="tab-settings" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Display & Visual Accessibility Preferences</h2>
+            <p class="panel-desc">Customize text size, contrast, spacing, typography, and motion. All adjustments take effect immediately across the entire application and persist in your browser.</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Text & Sizing Settings -->
+          <div class="card">
+            <h3 class="card-title">Text & Sizing</h3>
+            
+            <div class="form-group">
+              <label for="setting-font-size">Font Size Scale: <span id="setting-font-size-val">100%</span></label>
+              <input type="range" id="setting-font-size" min="90" max="160" step="5" value="100" class="form-range" aria-label="Adjust font size percentage">
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="setting-line-height">Line Spacing (Line Height)</label>
+              <select id="setting-line-height" class="form-select">
+                <option value="1.5">Standard (1.5)</option>
+                <option value="1.8">Relaxed (1.8)</option>
+                <option value="2.1">Loose / Dyslexia-Friendly (2.1)</option>
+              </select>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="setting-letter-spacing">Letter Spacing (Tracking)</label>
+              <select id="setting-letter-spacing" class="form-select">
+                <option value="normal">Standard (Normal)</option>
+                <option value="0.05em">Slight Expansion (+0.05em)</option>
+                <option value="0.12em">Wide Expansion (+0.12em)</option>
+              </select>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="setting-font-family">Typography Font</label>
+              <select id="setting-font-family" class="form-select">
+                <option value="system">System Sans-Serif (Modern & Clean)</option>
+                <option value="dyslexic">Dyslexia-Optimized Font (High Character Distinction)</option>
+                <option value="serif">High-Legibility Serif</option>
+                <option value="mono">Monospace (Fixed Width)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Color & Contrast Settings -->
+          <div class="card">
+            <h3 class="card-title">Color, Contrast & Motion</h3>
+
+            <div class="form-group">
+              <label for="setting-theme">Color Theme</label>
+              <select id="setting-theme" class="form-select">
+                <option value="light">Light Theme (Calm Slate & Blue)</option>
+                <option value="dark">Dark Theme (Low Glare Night)</option>
+                <option value="high-contrast-dark">High Contrast Dark (Pure Black & Bright White)</option>
+                <option value="high-contrast-yellow">High Contrast Yellow on Black (Maximum Visibility)</option>
+              </select>
+            </div>
+
+            <div class="form-group checkbox-group mt-3">
+              <label class="checkbox-label">
+                <input type="checkbox" id="setting-reduced-motion">
+                <span>Reduce Motion & Animations</span>
+              </label>
+              <p class="field-hint">Eliminates transition animations to assist users with vestibular or motion sensitivities.</p>
+            </div>
+
+            <div class="form-group checkbox-group mt-3">
+              <label class="checkbox-label">
+                <input type="checkbox" id="setting-enhanced-focus" checked>
+                <span>Enhanced Visible Focus Indicators</span>
+              </label>
+              <p class="field-hint">Adds thick high-contrast rings around all active keyboard-focused controls.</p>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="setting-max-width">Content Reading Width</label>
+              <select id="setting-max-width" class="form-select">
+                <option value="1200px">Standard Width (1200px)</option>
+                <option value="960px">Narrow / Focused Reading Width (960px)</option>
+                <option value="100%">Full Width</option>
+              </select>
+            </div>
+
+            <div class="card-actions-footer mt-4">
+              <button id="reset-settings-btn" class="btn btn-secondary">Reset to Default Settings</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- MODULE J: HELP & LOCAL AI SETUP GUIDE                   -->
+      <!-- ======================================================== -->
+      <section role="tabpanel" id="panel-help" class="tab-panel" aria-labelledby="tab-help" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Local AI Setup & Troubleshooting Guide</h2>
+            <p class="panel-desc">AccessAble AI runs 100% locally on your computer using Ollama. No API keys, no subscriptions, and complete data privacy. Follow the instructions below to verify or configure models.</p>
+          </div>
+        </div>
+
+        <div class="help-grid">
+          <!-- Step-by-Step PowerShell Guide -->
+          <div class="card">
+            <h3 class="card-title">Windows PowerShell Commands</h3>
+            <p class="card-desc">Run these commands in Windows PowerShell (or Command Prompt) to set up or verify Ollama:</p>
+
+            <div class="setup-steps-list">
+              <div class="setup-step-item">
+                <div class="step-badge">Step 1</div>
+                <div class="step-content">
+                  <h4>Verify Ollama Installation</h4>
+                  <div class="code-copy-row">
+                    <code>ollama --version</code>
+                    <button class="btn btn-secondary btn-sm copy-cmd-btn" data-cmd="ollama --version">Copy</button>
+                  </div>
+                  <p class="step-help">If not installed, run: <code>winget install Ollama.Ollama</code></p>
+                </div>
+              </div>
+
+              <div class="setup-step-item">
+                <div class="step-badge">Step 2</div>
+                <div class="step-content">
+                  <h4>Download Recommended Text Model (llama3.2)</h4>
+                  <div class="code-copy-row">
+                    <code>ollama pull llama3.2</code>
+                    <button class="btn btn-secondary btn-sm copy-cmd-btn" data-cmd="ollama pull llama3.2">Copy</button>
+                  </div>
+                  <p class="step-help">For low-RAM machines (4 GB RAM), use: <code>ollama pull llama3.2:1b</code></p>
+                </div>
+              </div>
+
+              <div class="setup-step-item">
+                <div class="step-badge">Step 3</div>
+                <div class="step-content">
+                  <h4>Download Vision Model for Image Descriptions (Optional)</h4>
+                  <div class="code-copy-row">
+                    <code>ollama pull moondream</code>
+                    <button class="btn btn-secondary btn-sm copy-cmd-btn" data-cmd="ollama pull moondream">Copy</button>
+                  </div>
+                  <p class="step-help">Compact vision model: <code>moondream</code> (1.7 GB). Larger model <code>ollama pull llama3.2-vision</code> is also supported.</p>
+                </div>
+              </div>
+
+              <div class="setup-step-item">
+                <div class="step-badge">Step 4</div>
+                <div class="step-content">
+                  <h4>Test Model Locally in Terminal</h4>
+                  <div class="code-copy-row">
+                    <code>ollama run llama3.2:1b "Explain accessibility in one short sentence"</code>
+                    <button class="btn btn-secondary btn-sm copy-cmd-btn" data-cmd="ollama run llama3.2:1b &quot;Explain accessibility in one short sentence&quot;">Copy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hardware & System Diagnostic -->
+          <div class="card">
+            <h3 class="card-title">Live System Diagnostic</h3>
+            
+            <div class="diag-status-card" id="diag-card">
+              <div class="diag-row">
+                <span>Ollama Service (127.0.0.1:11434):</span>
+                <strong id="diag-ollama-service" class="status-text-checking">Checking...</strong>
+              </div>
+              <div class="diag-row">
+                <span>Installed Models:</span>
+                <strong id="diag-installed-models">-</strong>
+              </div>
+              <div class="diag-row">
+                <span>Configured Text Model:</span>
+                <strong id="diag-text-model">-</strong>
+              </div>
+              <div class="diag-row">
+                <span>Configured Vision Model:</span>
+                <strong id="diag-vision-model">-</strong>
+              </div>
+              <div class="diag-row">
+                <span>Local Tesseract OCR:</span>
+                <strong id="diag-ocr-status">-</strong>
+              </div>
+              <div class="diag-row">
+                <span>Web Speech API:</span>
+                <strong id="diag-speech-status">Supported in this browser</strong>
+              </div>
+            </div>
+
+            <button id="refresh-status-btn" class="btn btn-secondary mt-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              <span>Refresh Diagnostic</span>
+            </button>
+
+            <h4 class="mt-4">Hardware Sizing Guidelines</h4>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Download Size</th>
+                    <th>RAM Required</th>
+                    <th>Best For</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>llama3.2:1b</strong></td>
+                    <td>1.3 GB</td>
+                    <td>4 GB</td>
+                    <td>Laptops, battery-saving, fast simplification</td>
+                  </tr>
+                  <tr>
+                    <td><strong>llama3.2</strong></td>
+                    <td>2.0 GB</td>
+                    <td>6 - 8 GB</td>
+                    <td>Balanced quality & plain-English accuracy</td>
+                  </tr>
+                  <tr>
+                    <td><strong>moondream</strong></td>
+                    <td>1.7 GB</td>
+                    <td>4 - 6 GB</td>
+                    <td>Fast basic image descriptions</td>
+                  </tr>
+                  <tr>
+                    <td><strong>llama3.2-vision</strong></td>
+                    <td>7.9 GB</td>
+                    <td>12 GB+ / GPU</td>
+                    <td>High-fidelity diagram & chart alt-text</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Application Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <p><strong>AccessAble AI</strong> — Digital Accessibility Assistant. Engineered with privacy-first local AI.</p>
+      <p class="footer-note">This application does not claim to diagnose disabilities or replace professional clinical assistive technology. WCAG audits are heuristic evaluations.</p>
+    </div>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
