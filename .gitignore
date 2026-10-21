@@ -22,3 +22,6 @@ temp_uploads/
 .idea/
 .DS_Store
 Thumbs.db
+# Local databases and generated files
+*.db
+*.sqlite3

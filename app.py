@@ -429,8 +429,11 @@ def create_app(config_class=Config) -> Flask:
     return app
 
 
+# Expose app at module level for WSGI servers (Gunicorn, Render, etc.)
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     port = int(os.environ.get("PORT", 5000))
-    logger.info("Starting AccessAble AI server on http://127.0.0.1:%s", port)
-    app.run(host="127.0.0.1", port=port, debug=False)
+    host = os.environ.get("HOST", "0.0.0.0")
+    logger.info("Starting AccessAble AI server on http://%s:%s", host, port)
+    app.run(host=host, port=port, debug=False)
