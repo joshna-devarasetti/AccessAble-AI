@@ -69,6 +69,23 @@ Open your browser and navigate to:
 
 ---
 
+## 🌐 Deploy to Render (Live Public URL)
+
+AccessAble AI is configured with production WSGI support for **Render**:
+
+1. Log in to [Render](https://dashboard.render.com).
+2. Click **New +** -> **Web Service** (or **Blueprint**).
+3. Connect your GitHub repository (`joshna-devarasetti/AccessAble-AI`).
+4. Configure the service:
+   - **Runtime:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `gunicorn app:app --workers 2 --threads 4 --timeout 120`
+5. Click **Create Web Service**. Render will build and deploy your app with a public HTTPS live URL (e.g., `https://accessable-ai.onrender.com`).
+
+*Tip:* To connect a local Ollama model to your public Render deployment, tunnel port 11434 (`ngrok http 11434`) and set the `OLLAMA_BASE_URL` environment variable in Render. Without a tunnel, the app gracefully falls back to the deterministic plain-English helper while keeping document reading, speech synthesis, dictation, and WCAG checking 100% functional.
+
+---
+
 ## 🧪 Running Automated Tests
 
 Run the complete 47-test suite with pytest:
